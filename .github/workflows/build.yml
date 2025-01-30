@@ -2,6 +2,11 @@ name: Build
 
 on:
   workflow_dispatch:
+    inputs:
+      ref:
+        description: "Branch or tag to checkout."
+        type: string
+        default: "v1.20.1"
 
 env:
   GCC_VERSION: 11
@@ -22,7 +27,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: "microsoft/onnxruntime"
-          ref: "v1.20.1"
+          ref: ${{ github.event.inputs.ref }}
 
       - name: Setup GCC
         uses: egor-tensin/setup-gcc@v1
@@ -44,7 +49,20 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
 
-      - name: Run build script
+      # TODO: Optional "--use_xnnpack"
+      - name: Run debug build
+        run: |
+          ./build.sh \
+          --build_dir ./build \
+          --config Debug \
+          --build_wasm_static_lib \
+          --enable_wasm_simd \
+          --enable_wasm_threads \
+          --skip_tests \
+          --disable_rtti \
+          --parallel
+
+      - name: Run release build
         run: |
           ./build.sh \
           --build_dir ./build \
@@ -57,14 +75,15 @@ jobs:
           --disable_rtti \
           --parallel
 
-      - name: Rename library
-        run:
+      - name: Rename libraries
+        run: |
+          mv build/Debug/libonnxruntime_webassembly.a build/Debug/libonnxruntime.a
           mv build/Release/libonnxruntime_webassembly.a build/Release/libonnxruntime.a
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: libonnxruntime-v1.20.1-wasm-release
-          path: build/Release/libonnxruntime.a
-
-          
+          name: libonnxruntime-${{ github.event.inputs.ref }}-wasm
+          path: |
+            build/Debug/libonnxruntime.a
+            build/Release/libonnxruntime.a
