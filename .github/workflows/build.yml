@@ -11,7 +11,7 @@ jobs:
       - name: Clone onnxruntime
         uses: actions/checkout@v4
         with:
-          repository: "https://github.com/microsoft/onnxruntime.git"
+          repository: "microsoft/onnxruntime"
           ref: "v1.20.1"
 
       - name: Run the build script
