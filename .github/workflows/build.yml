@@ -3,6 +3,16 @@ name: Build
 on:
   workflow_dispatch:
 
+env:
+  GCC_VERSION: 11
+  CMAKE_VERSION: 3.26
+  PYTHON_VERSION: 3.9
+  NODE_VERSION: 20
+
+defaults:
+  run:
+    shell: bash
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -14,8 +24,28 @@ jobs:
           repository: "microsoft/onnxruntime"
           ref: "v1.20.1"
 
-      - name: Run the build script
-        run: |
+      - name: Setup GCC
+        uses: egor-tensin/setup-gcc@v1
+        with:
+          version: ${{ env.GCC_VERSION }}
+
+      - name: Setup CMake
+        uses: lukka/get-cmake@latest
+        with:
+          cmakeVersion: ${{ env.CMAKE_VERSION }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Run build script
+        run:
           ./build.sh \
           --build_dir ./build \
           --config Release \
@@ -26,3 +56,15 @@ jobs:
           --disable_wasm_exception_catching \
           --disable_rtti \
           --parallel
+
+      - name: Rename library
+        run:
+          mv build/Release/libonnxruntime_webassembly.a build/Release/libonnxruntime.a
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: libonnxruntime-v1.20.1-wasm-release
+          path: build/Release/libonnxruntime.a
+
+          
