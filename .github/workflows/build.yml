@@ -1,0 +1,28 @@
+name: Build
+
+on:
+  workflow_call:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Clone onnxruntime
+        uses: actions/checkout@v4
+        with:
+          repository: "https://github.com/microsoft/onnxruntime.git"
+          ref: "v1.20.1"
+
+      - name: Run the build script
+        run: |
+          onnxruntime/build.sh \
+          --build_dir ./build \
+          --config Release \
+          --build_wasm_static_lib \
+          --enable_wasm_simd \
+          --enable_wasm_threads \
+          --skip_tests \
+          --disable_wasm_exception_catching \
+          --disable_rtti \
+          --parallel
