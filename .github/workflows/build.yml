@@ -21,6 +21,8 @@ defaults:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
       - name: Clone onnxruntime
@@ -35,7 +37,7 @@ jobs:
           version: ${{ env.GCC_VERSION }}
 
       - name: Setup CMake
-        uses: lukka/get-cmake@latest
+        uses: lukka/get-cmake@3
         with:
           cmakeVersion: ${{ env.CMAKE_VERSION }}
 
