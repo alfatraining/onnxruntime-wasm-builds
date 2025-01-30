@@ -16,7 +16,7 @@ jobs:
 
       - name: Run the build script
         run: |
-          onnxruntime/build.sh \
+          ./build.sh \
           --build_dir ./build \
           --config Release \
           --build_wasm_static_lib \
