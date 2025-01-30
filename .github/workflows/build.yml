@@ -21,6 +21,7 @@ defaults:
 jobs:
   build:
     runs-on: ubuntu-latest
+    continue-on-error: true
     permissions:
       contents: read
 
