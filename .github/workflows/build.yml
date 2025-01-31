@@ -11,10 +11,6 @@ on:
         description: "Create a release."
         type: boolean
         default: false
-      xnnpack:
-        description: "Compile XNNPACK execution provider."
-        type: boolean
-        default: false
 
 env:
   GCC_VERSION: 11
@@ -59,7 +55,6 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
 
-      # TODO: Optional "--use_xnnpack"
       # Continue on error because final steps might fail while library is already built.
       - name: Run debug build
         continue-on-error: true
@@ -89,9 +84,45 @@ jobs:
           --parallel
 
       - name: Rename libraries
+        continue-on-error: true
         run: |
           mv build/Debug/libonnxruntime_webassembly.a build/Debug/libonnxruntime.a
           mv build/Release/libonnxruntime_webassembly.a build/Release/libonnxruntime.a
+
+      - name: Run debug build with XNNPACK
+        continue-on-error: true
+        run: |
+          ./build.sh \
+          --build_dir ./build \
+          --config Debug \
+          --build_wasm_static_lib \
+          --enable_wasm_simd \
+          --enable_wasm_threads \
+          --skip_tests \
+          --disable_rtti \
+          --use_xnnpack \
+          --parallel
+
+      - name: Run release build with XNNPACK
+        continue-on-error: true
+        run: |
+          ./build.sh \
+          --build_dir ./build \
+          --config Release \
+          --build_wasm_static_lib \
+          --enable_wasm_simd \
+          --enable_wasm_threads \
+          --skip_tests \
+          --disable_wasm_exception_catching \
+          --disable_rtti \
+          --use_xnnpack \
+          --parallel
+
+      - name: Rename libraries
+        continue-on-error: true
+        run: |
+          mv build/Debug/libonnxruntime_webassembly.a build/Debug/libonnxruntime_xnnpack.a
+          mv build/Release/libonnxruntime_webassembly.a build/Release/libonnxruntime_xnnpack.a
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -100,6 +131,8 @@ jobs:
           path: |
             build/Debug/libonnxruntime.a
             build/Release/libonnxruntime.a
+            build/Debug/libonnxruntime_xnnpack.a
+            build/Release/libonnxruntime_xnnpack.a
 
   release:
       name: Release
