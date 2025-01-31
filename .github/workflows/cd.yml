@@ -7,10 +7,6 @@ on:
         description: "Branch or tag to checkout."
         type: string
         default: "v1.20.1"
-      release:
-        description: "Create a release."
-        type: boolean
-        default: false
 
 env:
   GCC_VERSION: 11
@@ -137,23 +133,3 @@ jobs:
             build/Release/libonnxruntime.a
             build/Debug/libonnxruntime_xnnpack.a
             build/Release/libonnxruntime_xnnpack.a
-
-  release:
-      name: Release
-      if: ${{ github.event.inputs.release }}
-      needs: Build
-      runs-on: ubuntu-latest
-      permissions:
-        contents: write
-  
-      steps:
-        - name: Download artifact
-          uses: actions/download-artifact@v4
-  
-        - name: Release
-          uses: ncipollo/release-action@v1
-          with:
-            name: libonnxruntime-${{ github.event.inputs.ref }}-wasm
-            tag: ${{ github.event.inputs.ref }}
-            artifacts: "libonnxruntime-${{ github.event.inputs.ref }}-wasm\*"
-            allowUpdates: true
