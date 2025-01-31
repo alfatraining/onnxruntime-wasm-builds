@@ -7,6 +7,10 @@ on:
         description: "Branch or tag to checkout."
         type: string
         default: "v1.20.1"
+      release:
+        description: "Whether to create a release."
+        type: boolean
+        default: false
 
 env:
   GCC_VERSION: 11
@@ -21,7 +25,6 @@ defaults:
 jobs:
   build:
     runs-on: ubuntu-latest
-    continue-on-error: true
     permissions:
       contents: read
 
@@ -38,7 +41,7 @@ jobs:
           version: ${{ env.GCC_VERSION }}
 
       - name: Setup CMake
-        uses: lukka/get-cmake@v3
+        uses: lukka/get-cmake@latest
         with:
           cmakeVersion: ${{ env.CMAKE_VERSION }}
 
@@ -53,7 +56,9 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
 
       # TODO: Optional "--use_xnnpack"
+      # Continue on error because final steps might fail while library is already built.
       - name: Run debug build
+        continue-on-error: true
         run: |
           ./build.sh \
           --build_dir ./build \
@@ -66,6 +71,7 @@ jobs:
           --parallel
 
       - name: Run release build
+        continue-on-error: true
         run: |
           ./build.sh \
           --build_dir ./build \
@@ -90,3 +96,22 @@ jobs:
           path: |
             build/Debug/libonnxruntime.a
             build/Release/libonnxruntime.a
+
+  release:
+      name: Release
+      if: ${{ github.event.inputs.release }}
+      needs: build
+      runs-on: ubuntu-latest
+      permissions:
+        contents: write
+  
+      steps:
+        - name: Download artifact
+          uses: actions/download-artifact@v4
+  
+        - name: Release
+          uses: ncipollo/release-action@v1
+          with:
+            name: "libonnxruntime-${{ github.event.inputs.ref }}-wasm"
+            artifacts: "*/*.*"
+            allowUpdates: true
