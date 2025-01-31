@@ -69,6 +69,10 @@ jobs:
           --disable_rtti \
           --parallel
 
+      - name: Rename library
+        continue-on-error: true
+        run: mv build/Debug/libonnxruntime_webassembly.a build/Debug/libonnxruntime.a
+
       - name: Run release build
         continue-on-error: true
         run: |
@@ -83,11 +87,9 @@ jobs:
           --disable_rtti \
           --parallel
 
-      - name: Rename libraries
+      - name: Rename library
         continue-on-error: true
-        run: |
-          mv build/Debug/libonnxruntime_webassembly.a build/Debug/libonnxruntime.a
-          mv build/Release/libonnxruntime_webassembly.a build/Release/libonnxruntime.a
+        run: mv build/Release/libonnxruntime_webassembly.a build/Release/libonnxruntime.a
 
       - name: Run debug build with XNNPACK
         continue-on-error: true
@@ -102,6 +104,10 @@ jobs:
           --disable_rtti \
           --use_xnnpack \
           --parallel
+
+      - name: Rename library
+        continue-on-error: true
+        run: mv build/Debug/libonnxruntime_webassembly.a build/Debug/libonnxruntime_xnnpack.a
 
       - name: Run release build with XNNPACK
         continue-on-error: true
@@ -118,11 +124,9 @@ jobs:
           --use_xnnpack \
           --parallel
 
-      - name: Rename libraries
+      - name: Rename library
         continue-on-error: true
-        run: |
-          mv build/Debug/libonnxruntime_webassembly.a build/Debug/libonnxruntime_xnnpack.a
-          mv build/Release/libonnxruntime_webassembly.a build/Release/libonnxruntime_xnnpack.a
+        run: mv build/Release/libonnxruntime_webassembly.a build/Release/libonnxruntime_xnnpack.a
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -137,7 +141,7 @@ jobs:
   release:
       name: Release
       if: ${{ github.event.inputs.release }}
-      needs: build
+      needs: Build
       runs-on: ubuntu-latest
       permissions:
         contents: write
@@ -150,5 +154,6 @@ jobs:
           uses: ncipollo/release-action@v1
           with:
             name: libonnxruntime-${{ github.event.inputs.ref }}-wasm
+            tag: ${{ github.event.inputs.ref }}
             artifacts: "*/*.*"
             allowUpdates: true
