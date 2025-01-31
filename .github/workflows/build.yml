@@ -11,6 +11,10 @@ on:
         description: "Create a release."
         type: boolean
         default: false
+      xnnpack:
+        description: "Compile XNNPACK execution provider."
+        type: boolean
+        default: false
 
 env:
   GCC_VERSION: 11
@@ -112,6 +116,6 @@ jobs:
         - name: Release
           uses: ncipollo/release-action@v1
           with:
-            name: "libonnxruntime-${{ github.event.inputs.ref }}-wasm"
+            name: libonnxruntime-${{ github.event.inputs.ref }}-wasm
             artifacts: "*/*.*"
             allowUpdates: true
