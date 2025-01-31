@@ -155,5 +155,5 @@ jobs:
           with:
             name: libonnxruntime-${{ github.event.inputs.ref }}-wasm
             tag: ${{ github.event.inputs.ref }}
-            artifacts: "*/*.*"
+            artifacts: "libonnxruntime-${{ github.event.inputs.ref }}-wasm"
             allowUpdates: true
